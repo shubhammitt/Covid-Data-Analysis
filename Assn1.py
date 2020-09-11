@@ -3,6 +3,7 @@ import numpy as np
 import json
 import re
 import datetime
+import sys
 
 # API usage : https://api.covid19india.org/documentation/statedaily.html
 
@@ -13,7 +14,7 @@ def string_date_to_standard_date1(date):
 
     return date in datetime.date format so that relational operator works on it
     """
-    year, mon, date = map(int,date.split('-'))
+    year, mon, date = map(int, date.split('-'))
     return datetime.datetime(year, mon, date)
 
 
@@ -25,7 +26,18 @@ def string_date_to_standard_date2(date):
     return date in datetime.date format so that relational operator works on it
     """
     date, mon, year = date.split('-')
-    mon_name_to_num = {'Jan' : 1, 'Feb' : 2, 'Mar' : 3, 'Apr' : 4, 'May' : 5, 'Jun' : 6, 'Jul' : 7, 'Aug' : 8, 'Sep' : 9, 'Oct' : 10, 'Nov' : 11, 'Dec' : 12}
+    mon_name_to_num = {'Jan' : 1, 
+                       'Feb' : 2, 
+                       'Mar' : 3, 
+                       'Apr' : 4, 
+                       'May' : 5, 
+                       'Jun' : 6, 
+                       'Jul' : 7, 
+                       'Aug' : 8, 
+                       'Sep' : 9, 
+                       'Oct' : 10, 
+                       'Nov' : 11, 
+                       'Dec' : 12 }
     mon = mon_name_to_num[mon]
     return datetime.datetime(2000 + int(year), mon, int(date))
 
@@ -41,18 +53,16 @@ def extract_json_file(json_file_path):
         return json.load(json_file)['states_daily']
 
 
-def count_from_start_to_end(json_file_path, start_date, end_date, states):
+def count_from_start_to_end(data, start_date, end_date, states):
     """
     Args:
-        json_file_path (TYPE): Description
+        data (TYPE): extracted from json file
         start_date (TYPE): Description
         end_date (TYPE): Description
         states : a list of states abbrevations whose count need to be taken in account
 
-    return sum of confirmed_count, recovered_count, deceased_count in the list states
+    return sum of confirmed_count, recovered_count, deceased_count in the list 'states'
     """
-    
-    data = extract_json_file(json_file_path)
     start_date, end_date = string_date_to_standard_date1(start_date), string_date_to_standard_date1(end_date)
     confirmed_count = recovered_count = deceased_count = 0
 
@@ -81,7 +91,7 @@ def Q1_1(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_count, recovered_count, deceased_count = count_from_start_to_end(json_file_path, start_date, end_date, ['tt'])
+    confirmed_count, recovered_count, deceased_count = count_from_start_to_end(extract_json_file(json_file_path), start_date, end_date, ['tt'])
     print('confirmed_count: ',confirmed_count, 'recovered_count: ',recovered_count, 'deceased_count: ',deceased_count)
     return confirmed_count, recovered_count, deceased_count
 
@@ -94,7 +104,7 @@ def Q1_2(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_count, recovered_count, deceased_count = count_from_start_to_end(json_file_path, start_date, end_date, ['dl'])
+    confirmed_count, recovered_count, deceased_count = count_from_start_to_end(extract_json_file(json_file_path), start_date, end_date, ['dl'])
     print('confirmed_count: ',confirmed_count, 'recovered_count: ',recovered_count, 'deceased_count: ',deceased_count)
     return confirmed_count, recovered_count, deceased_count
 
@@ -107,10 +117,9 @@ def Q1_3(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_count, recovered_count, deceased_count = count_from_start_to_end(json_file_path, start_date, end_date, ['dl', 'mh'])
+    confirmed_count, recovered_count, deceased_count = count_from_start_to_end(extract_json_file(json_file_path), start_date, end_date, ['dl', 'mh'])
     print('confirmed_count: ',confirmed_count, 'recovered_count: ',recovered_count, 'deceased_count: ',deceased_count)
     return confirmed_count, recovered_count, deceased_count
-
 
 def Q1_4(json_file_path, start_date, end_date):
     """Q1 function
@@ -120,16 +129,35 @@ def Q1_4(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    
-    print('Confirmed \n')
-    print('Highest affected State is: ')
-    print('Highest affected State count is: ')
-    print('Recovered \n')
-    print('Highest affected State is: ')
-    print('Highest affected State count is: ')
-    print('Deceased \n')
-    print('Highest affected State is: ')
-    print('Highest affected State count is: ')
+    highest_confirmed_count = [0, '']
+    highest_recovered_count = [0, '']
+    highest_deceased_count  = [0, '']
+
+    data = extract_json_file(json_file_path)
+    for state in  data[0]:
+        if len(state) == 2 and state != 'tt':
+            confirmed_count, recovered_count, deceased_count = count_from_start_to_end(data, start_date, end_date, [state])
+            if confirmed_count > highest_confirmed_count[0]:
+                highest_confirmed_count[0] = confirmed_count
+                highest_confirmed_count[1] = state
+
+            if recovered_count > highest_recovered_count[0]:
+                highest_recovered_count[0] = recovered_count
+                highest_recovered_count[1] = state
+
+            if deceased_count > highest_deceased_count[0]:
+                highest_deceased_count[0] = deceased_count
+                highest_deceased_count[1] = state
+
+    print('Confirmed :- ')
+    print('Highest affected State is: ', highest_confirmed_count[1])
+    print('Highest affected State count is: ', highest_confirmed_count[0], '\n')
+    print('Recovered :- ')
+    print('Highest affected State is: ', highest_recovered_count[1])
+    print('Highest affected State count is: ', highest_recovered_count[0], '\n')
+    print('Deceased :- ')
+    print('Highest affected State is: ', highest_deceased_count[1])
+    print('Highest affected State count is: ', highest_deceased_count[0], '\n')
 
 
 def Q1_5(json_file_path, start_date, end_date):
@@ -140,15 +168,35 @@ def Q1_5(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    print('Confirmed \n')
-    print('Lowest affected State is: ')
-    print('Lowest affected State count is: ')
-    print('Recovered \n')
-    print('Lowest affected State is: ')
-    print('Lowest affected State count is: ')
-    print('Deceased \n')
-    print('Lowest affected State is: ')
-    print('Lowest affected State count is: ')
+    lowest_confirmed_count = [sys.maxsize, '']
+    lowest_recovered_count = [sys.maxsize, '']
+    lowest_deceased_count  = [sys.maxsize, '']
+
+    data = extract_json_file(json_file_path)
+    for state in  data[0]:
+        if len(state) == 2 and state != 'tt':
+            confirmed_count, recovered_count, deceased_count = count_from_start_to_end(data, start_date, end_date, [state])
+            if confirmed_count < lowest_confirmed_count[0]:
+                lowest_confirmed_count[0] = confirmed_count
+                lowest_confirmed_count[1] = state
+
+            if recovered_count < lowest_recovered_count[0]:
+                lowest_recovered_count[0] = recovered_count
+                lowest_recovered_count[1] = state
+
+            if deceased_count < lowest_deceased_count[0]:
+                lowest_deceased_count[0] = deceased_count
+                lowest_deceased_count[1] = state
+
+    print('Confirmed :- ')
+    print('Lowest affected State is: ', lowest_confirmed_count[1])
+    print('Lowest affected State count is: ', lowest_confirmed_count[0], '\n')
+    print('Recovered :- ')
+    print('Lowest affected State is: ', lowest_recovered_count[1])
+    print('Lowest affected State count is: ', lowest_recovered_count[0], '\n')
+    print('Deceased :- ')
+    print('Lowest affected State is: ', lowest_deceased_count[1])
+    print('Lowest affected State count is: ', lowest_deceased_count[0], '\n')
 
 
 def Q1_6(json_file_path, start_date, end_date):
@@ -159,15 +207,15 @@ def Q1_6(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    print('Confirmed \n')
+    print('Confirmed :- \n')
     print('Day: ',Highest_spike_day)
-    print('Count: ',Highest_spike_count)
-    print('Recovered \n')
+    print('Count: \n',Highest_spike_count)
+    print('Recovered :- \n')
     print('Day: ',Highest_spike_day)
-    print('Count: ',Highest_spike_count)
-    print('Deceased \n')
+    print('Count: \n',Highest_spike_count)
+    print('Deceased :- \n')
     print('Day: ',Highest_spike_day)
-    print('Count: ',Highest_spike_count)
+    print('Count: \n',Highest_spike_count)
 
 
 def Q1_7(json_file_path, start_date, end_date):
@@ -236,8 +284,8 @@ if __name__ == "__main__":
     Q1_1('states_daily.json', start_date, end_date)
     Q1_2('states_daily.json', start_date, end_date)
     Q1_3('states_daily.json', start_date, end_date)
-    # Q1_4('states_daily.json', start_date, end_date)
-    # Q1_5('states_daily.json', start_date, end_date)
+    Q1_4('states_daily.json', start_date, end_date)
+    Q1_5('states_daily.json', start_date, end_date)
     # Q1_6('states_daily.json', start_date, end_date)
     # Q1_4('states_daily.json', start_date, end_date)
     # Q2_1('states_daily.json', start_date, end_date)
