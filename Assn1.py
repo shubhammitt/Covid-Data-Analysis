@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import json
-import re
 import datetime
 import sys
 
@@ -92,6 +91,7 @@ def Q1_1(json_file_path, start_date, end_date):
         end_date (TYPE): Description
     """
     confirmed_count, recovered_count, deceased_count = count_from_start_to_end(extract_json_file(json_file_path), start_date, end_date, ['tt'])
+    print("\nQ1_1 :-\n ")
     print('confirmed_count: ',confirmed_count, 'recovered_count: ',recovered_count, 'deceased_count: ',deceased_count)
     return confirmed_count, recovered_count, deceased_count
 
@@ -105,6 +105,7 @@ def Q1_2(json_file_path, start_date, end_date):
         end_date (TYPE): Description
     """
     confirmed_count, recovered_count, deceased_count = count_from_start_to_end(extract_json_file(json_file_path), start_date, end_date, ['dl'])
+    print("\nQ1_2 :-\n ")
     print('confirmed_count: ',confirmed_count, 'recovered_count: ',recovered_count, 'deceased_count: ',deceased_count)
     return confirmed_count, recovered_count, deceased_count
 
@@ -118,6 +119,7 @@ def Q1_3(json_file_path, start_date, end_date):
         end_date (TYPE): Description
     """
     confirmed_count, recovered_count, deceased_count = count_from_start_to_end(extract_json_file(json_file_path), start_date, end_date, ['dl', 'mh'])
+    print("\nQ1_3 :-\n ")
     print('confirmed_count: ',confirmed_count, 'recovered_count: ',recovered_count, 'deceased_count: ',deceased_count)
     return confirmed_count, recovered_count, deceased_count
 
@@ -149,6 +151,7 @@ def Q1_4(json_file_path, start_date, end_date):
                 highest_deceased_count[0] = deceased_count
                 highest_deceased_count[1] = state
 
+    print("\nQ1_4 :-\n ")
     print('Confirmed :- ')
     print('Highest affected State is: ', highest_confirmed_count[1])
     print('Highest affected State count is: ', highest_confirmed_count[0], '\n')
@@ -188,6 +191,7 @@ def Q1_5(json_file_path, start_date, end_date):
                 lowest_deceased_count[0] = deceased_count
                 lowest_deceased_count[1] = state
 
+    print("\nQ1_5 :-\n ")
     print('Confirmed :- ')
     print('Lowest affected State is: ', lowest_confirmed_count[1])
     print('Lowest affected State count is: ', lowest_confirmed_count[0], '\n')
@@ -229,6 +233,7 @@ def Q1_6(json_file_path, start_date, end_date):
                 highest_deceased_count[0] = count
                 highest_deceased_count[1] = day['date']
 
+    print("\nQ1_6 :-\n ")
     print('Confirmed :- ')
     print('Day: ', highest_confirmed_count[1])
     print('Count: ',highest_confirmed_count[0],'\n')
@@ -249,6 +254,7 @@ def Q1_7(json_file_path, start_date, end_date):
         end_date (TYPE): Description
     """
     data = extract_json_file(json_file_path)
+    print("\nQ1_7 :-\n ")
     print("State\t\tActive Cases")
     for state in  data[0]:
         if len(state) == 2 and state != 'tt':
