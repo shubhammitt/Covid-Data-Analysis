@@ -131,9 +131,9 @@ def Q1_4(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    highest_confirmed_count = [0, '']
-    highest_recovered_count = [0, '']
-    highest_deceased_count  = [0, '']
+    highest_confirmed_count = [0, []]
+    highest_recovered_count = [0, []]
+    highest_deceased_count  = [0, []]
     data = extract_json_file(json_file_path)
 
     for state in  data[0]:
@@ -141,15 +141,23 @@ def Q1_4(json_file_path, start_date, end_date):
             confirmed_count, recovered_count, deceased_count = count_from_start_to_end(data, start_date, end_date, [state])
             if confirmed_count > highest_confirmed_count[0]:
                 highest_confirmed_count[0] = confirmed_count
-                highest_confirmed_count[1] = state
+                highest_confirmed_count[1] = [state]
+            elif confirmed_count == highest_confirmed_count[0]:
+                highest_confirmed_count[1].append(state)
 
             if recovered_count > highest_recovered_count[0]:
                 highest_recovered_count[0] = recovered_count
-                highest_recovered_count[1] = state
+                highest_recovered_count[1] = [state]
+            elif recovered_count == highest_recovered_count[0]:
+                highest_recovered_count[1].append(state)
+                
 
             if deceased_count > highest_deceased_count[0]:
                 highest_deceased_count[0] = deceased_count
-                highest_deceased_count[1] = state
+                highest_deceased_count[1] = [state]
+            elif deceased_count == highest_deceased_count[0]:
+                highest_deceased_count[1].append(state)
+                
 
     print("\nQ1_4 :-\n ")
     print('Confirmed :- ')
@@ -171,9 +179,9 @@ def Q1_5(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    lowest_confirmed_count = [sys.maxsize, '']
-    lowest_recovered_count = [sys.maxsize, '']
-    lowest_deceased_count  = [sys.maxsize, '']
+    lowest_confirmed_count = [sys.maxsize, []]
+    lowest_recovered_count = [sys.maxsize, []]
+    lowest_deceased_count  = [sys.maxsize, []]
     data = extract_json_file(json_file_path)
 
     for state in  data[0]:
@@ -181,15 +189,21 @@ def Q1_5(json_file_path, start_date, end_date):
             confirmed_count, recovered_count, deceased_count = count_from_start_to_end(data, start_date, end_date, [state])
             if confirmed_count < lowest_confirmed_count[0]:
                 lowest_confirmed_count[0] = confirmed_count
-                lowest_confirmed_count[1] = state
+                lowest_confirmed_count[1] = [state]
+            elif confirmed_count == lowest_confirmed_count[0]:
+                lowest_confirmed_count[1].append(state)
 
             if recovered_count < lowest_recovered_count[0]:
                 lowest_recovered_count[0] = recovered_count
-                lowest_recovered_count[1] = state
+                lowest_recovered_count[1] = [state]
+            elif recovered_count == lowest_recovered_count[0]:
+                lowest_recovered_count[1].append(state)
 
             if deceased_count < lowest_deceased_count[0]:
                 lowest_deceased_count[0] = deceased_count
-                lowest_deceased_count[1] = state
+                lowest_deceased_count[1] = [state]
+            elif deceased_count == lowest_deceased_count[0]:
+                lowest_deceased_count[1].append(state)
 
     print("\nQ1_5 :-\n ")
     print('Confirmed :- ')
@@ -216,11 +230,11 @@ def Q1_6(json_file_path, start_date, end_date):
     highest_confirmed_count = [0, '']
     highest_recovered_count = [0, '']
     highest_deceased_count  = [0, '']
-
+    state = 'dl'
     for day in data:
         today_date = string_date_to_standard_date2(day['date'])
         if start_date <= today_date and today_date <= end_date:
-            count = int(day['dl'])
+            count = int(day[state])
             if day['status'] == 'Confirmed' and count > highest_confirmed_count[0]:
                 highest_confirmed_count[0] = count
                 highest_confirmed_count[1] = day['date']
@@ -317,12 +331,12 @@ if __name__ == "__main__":
     end_date = "2020-09-05"
     
     Q1_1('states_daily.json', start_date, end_date)
-    Q1_2('states_daily.json', start_date, end_date)
-    Q1_3('states_daily.json', start_date, end_date)
+    # Q1_2('states_daily.json', start_date, end_date)
+    # Q1_3('states_daily.json', start_date, end_date)
     Q1_4('states_daily.json', start_date, end_date)
     Q1_5('states_daily.json', start_date, end_date)
-    Q1_6('states_daily.json', start_date, end_date)
-    Q1_7('states_daily.json', start_date, end_date)
+    # Q1_6('states_daily.json', start_date, end_date)
+    # Q1_7('states_daily.json', start_date, end_date)
     # Q2_1('states_daily.json', start_date, end_date)
     # Q2_2('states_daily.json', start_date, end_date)
     # Q2_3('states_daily.json', start_date, end_date)
