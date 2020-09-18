@@ -43,10 +43,22 @@ def json_to_df(json_file_path):
         Takes file path of json file
     returns pandas dataframe
     '''
-    with open(json_file_path) as json_file:
-        dataset = json.load(json_file)['states_daily']
+    try:
+        with open(json_file_path) as json_file:
+            dataset = json.load(json_file)['states_daily']
+    except:
+        print("File not found!!")
+        exit(1)
 
     df = pd.DataFrame(dataset)
+    for state in states:
+        if state not in df.columns:
+            states.remove(state)
+
+    for ut in uts:
+        if ut not in df.columns:
+            uts.remove(ut)
+
     return df
 
 def remove_useless_cols(df, cols):
@@ -101,22 +113,35 @@ def pre_process_data(json_file_path, start_date, end_date):
     '''
     '''
     cols = ['date', 'status', 'tt'] + states + uts
-    start_date = string_date_to_standard_date1(start_date)
-    end_date = string_date_to_standard_date1(end_date)
     df = json_to_df(json_file_path)
+
+    try:
+        start_date = string_date_to_standard_date1(start_date)
+        end_date = string_date_to_standard_date1(end_date)
+    except:
+        print("Please enter valid dates in YYYY-MM-DD fomat!!")
+        exit(1)
+
+    if start_date > end_date :
+        print("Enter start_date less than end_date!!")
+        exit(1)
+
     remove_useless_cols(df, cols)
     tranform_df_dates(df, 'date')
     remove_useless_rows(df, start_date, end_date)
     change_col_pos(df, ['date', 'status', 'tt'] + uts)
     string_to_int_cols(df, ['tt'] + states + uts)
     df.sort_values(by=['date'])
+
     confirmed_df = df.loc[df['status'] == 'Confirmed'].copy()
     recovered_df = df.loc[df['status'] == 'Recovered'].copy()
     deceased_df = df.loc[df['status'] == 'Deceased'].copy()
+
     cols.remove('status')
     remove_useless_cols(confirmed_df, cols)
     remove_useless_cols(recovered_df, cols)
     remove_useless_cols(deceased_df, cols)
+
     return confirmed_df, recovered_df, deceased_df
 
 def Q1_1(json_file_path, start_date, end_date):
@@ -361,6 +386,8 @@ def Q3(json_file_path, start_date, end_date):
     # plot(recovered_X, recovered_Y, recovered_slope, recovered_intercept)
     # plot(deceased_X, deceased_Y, deceased_slope, deceased_intercept)
 
+    print('\nQ3 :-\n')
+    print(confirmed_intercept, confirmed_slope, recovered_intercept, recovered_slope, deceased_intercept, deceased_slope)
     return confirmed_intercept, confirmed_slope, recovered_intercept, recovered_slope, deceased_intercept, deceased_slope
 
 
@@ -373,14 +400,14 @@ if __name__ == "__main__":
     start_date = "2020-03-14"
     end_date = "2020-09-05"
 
-    # Q1_1('states_daily.json', start_date, end_date)
-    # Q1_2('states_daily.json', start_date, end_date)
-    # Q1_3('states_daily.json', start_date, end_date)
-    # Q1_4('states_daily.json', start_date, end_date)
-    # Q1_5('states_daily.json', start_date, end_date)
-    # Q1_6('states_daily.json', start_date, end_date)
-    # Q1_7('states_daily.json', start_date, end_date)
+    Q1_1('states_daily.json', start_date, end_date)
+    Q1_2('states_daily.json', start_date, end_date)
+    Q1_3('states_daily.json', start_date, end_date)
+    Q1_4('states_daily.json', start_date, end_date)
+    Q1_5('states_daily.json', start_date, end_date)
+    Q1_6('states_daily.json', start_date, end_date)
+    Q1_7('states_daily.json', start_date, end_date)
     # Q2_1('states_daily.json', start_date, end_date)
     # Q2_2('states_daily.json', start_date, end_date)
     # Q2_3('states_daily.json', start_date, end_date)
-    # Q3('states_daily.json', start_date, end_date)
+    Q3('states_daily.json', start_date, end_date)
