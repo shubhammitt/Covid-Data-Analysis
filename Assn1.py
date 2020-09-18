@@ -6,6 +6,9 @@ import sys
 
 # API usage : https://api.covid19india.org/documentation/statedaily.html
 
+states = ['ap', 'ar', 'as', 'br', 'ct',  'dl', 'ga', 'gj', 'hp', 'hr', 'jh',  'ka', 'kl', 'mh', 'ml', 'mn', 'mp', 'mz', 'nl', 'or', 'pb', 'rj', 'sk', 'tg', 'tn', 'tr', 'up', 'ut', 'wb']
+uts = ['an', 'ch', 'dd', 'dn', 'jk', 'la', 'ld', 'py']
+
 def string_date_to_standard_date1(date):
     """ 
     Args:
@@ -16,7 +19,6 @@ def string_date_to_standard_date1(date):
     year, mon, date = map(int, date.split('-'))
     return datetime.datetime(year, mon, date)
 
-
 def string_date_to_standard_date2(date):
     """ 
     Args:
@@ -24,63 +26,107 @@ def string_date_to_standard_date2(date):
 
     return date in datetime.date format so that relational operator works on it
     """
-    date, mon, year = date.split('-')
-    mon_name_to_num = {'Jan' : 1, 
-                       'Feb' : 2, 
-                       'Mar' : 3, 
-                       'Apr' : 4, 
-                       'May' : 5, 
-                       'Jun' : 6, 
-                       'Jul' : 7, 
-                       'Aug' : 8, 
-                       'Sep' : 9, 
-                       'Oct' : 10, 
-                       'Nov' : 11, 
-                       'Dec' : 12 }
-    mon = mon_name_to_num[mon]
-    return datetime.datetime(2000 + int(year), mon, int(date))
+    try :
+        date, mon, year = date.split('-')
+        mon_name_to_num = {'Jan' : 1, 
+                           'Feb' : 2, 
+                           'Mar' : 3, 
+                           'Apr' : 4, 
+                           'May' : 5, 
+                           'Jun' : 6, 
+                           'Jul' : 7, 
+                           'Aug' : 8, 
+                           'Sep' : 9, 
+                           'Oct' : 10, 
+                           'Nov' : 11, 
+                           'Dec' : 12 }
+        mon = mon_name_to_num[mon]
+        return datetime.datetime(2000 + int(year), mon, int(date))
+    except :
+        return None
 
-
-def extract_json_file(json_file_path):
-    """ 
+def json_to_df(json_file_path):
+    '''
     Args:
-        json_file_path : json file's name
-
-    returns a list of dictionaries and each dictionary contains the required stats
-    """
+        Takes file path of json file
+    returns pandas dataframe
+    '''
     with open(json_file_path) as json_file:
-        return json.load(json_file)['states_daily']
+        dataset = json.load(json_file)['states_daily']
+
+    df = pd.DataFrame(dataset)
+    return df
+    
+def remove_useless_cols(df, cols):
+    '''
+        remove useless columns from dataframe
+    '''
+    cols = [col_name for col_name in df.columns if col_name not in cols]
+    df.drop(cols, axis = 1, inplace = True)
+
+def tranform_df_dates(df, date):
+    '''
+        convert string date to datetime.date in 'date' column and if there is some issue while converting than remove that row
+    '''
+    df[date] = df[date].apply(string_date_to_standard_date2)
+    df.dropna(subset = [date], inplace=True)
+
+def remove_useless_rows(df, start_date, end_date):
+    '''
+        removes those rows from dataframe whose dates are not between start_date and end_date
+    '''
+    df.drop(df[(start_date > df['date']) | (df['date'] > end_date)].index, axis = 0, inplace = True)
+
+def change_col_pos(df, cols):
+    '''
+        just to make df consistent in look by bringing ['date', 'status', 'tt'] in front , followed by UT's anf then all states
+    '''
+    for idx, col_name in enumerate(cols):
+        col = df.pop(col_name)
+        df.insert(idx, col_name, col)
+
+def str_to_int(x):
+    '''
+        convert string to integer and if there is any error then return 0
+    '''
+    try:
+        x = int(x)
+        return x
+    except:
+        return 0
+
+def string_to_int_cols(df, cols):
+    '''
+        change all values from str to int and if there is some error then place 0 value there
+    '''
+    rows = df.shape[0]
+    for col_name in cols:
+        df[col_name] = df[col_name].apply(str_to_int)
 
 
-def count_from_start_to_end(data, start_date, end_date, states):
-    """
-    Args:
-        data (TYPE): extracted from json file
-        start_date (TYPE): Description
-        end_date (TYPE): Description
-        states : a list of states abbrevations whose count need to be taken in account
+def pre_process_data(json_file_path, start_date, end_date, include_UTs = True): 
+    '''
+    '''   
+    cols                                         =       ['date', 'status', 'tt'] + states + uts
+    start_date                                   =       string_date_to_standard_date1(start_date)
+    end_date                                     =       string_date_to_standard_date1(end_date)
+    df                                           =       json_to_df(json_file_path)
 
-    return sum of confirmed_count, recovered_count, deceased_count in the list 'states'
-    """
-    start_date, end_date = string_date_to_standard_date1(start_date), string_date_to_standard_date1(end_date)
-    confirmed_count = recovered_count = deceased_count = 0
+    if not include_UTs:
+        cols.remove(uts)
 
-    for day in data:
-        today_date = string_date_to_standard_date2(day['date'])
-        if start_date <= today_date and today_date <= end_date:
-            count = 0
-            for state in states:
-                count += int(day[state])
-
-            if day['status'] == 'Confirmed':
-                confirmed_count += count
-            elif day['status'] == 'Recovered':
-                recovered_count += count
-            else:
-                deceased_count += count
-
-    return confirmed_count, recovered_count, deceased_count
-
+    remove_useless_cols(df, cols)
+    tranform_df_dates(df, 'date')
+    remove_useless_rows(df, start_date, end_date)
+    change_col_pos(df, ['date', 'status', 'tt'] + uts)
+    string_to_int_cols(df, ['tt'] + states + uts )
+    df.sort_values(by=['date'])
+    confirmed_df, recovered_df, deceased_df = df.loc[df['status'] == 'Confirmed'].copy(), df.loc[df['status'] == 'Recovered'].copy(), df.loc[df['status'] == 'Deceased'].copy()
+    cols.remove('status')
+    remove_useless_cols(confirmed_df, cols)
+    remove_useless_cols(recovered_df, cols)
+    remove_useless_cols(deceased_df, cols)
+    return confirmed_df, recovered_df, deceased_df
 
 def Q1_1(json_file_path, start_date, end_date):
     """Q1 function
@@ -90,7 +136,8 @@ def Q1_1(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_count, recovered_count, deceased_count = count_from_start_to_end(extract_json_file(json_file_path), start_date, end_date, ['tt'])
+    confirmed_df, recovered_df, deceased_df      =       pre_process_data(json_file_path, start_date, end_date)
+    confirmed_count, recovered_count , deceased_count                 =       confirmed_df['tt'].sum(), recovered_df['tt'].sum(), deceased_df['tt'].sum()
     print("\nQ1_1 :-\n ")
     print('confirmed_count: ',confirmed_count, 'recovered_count: ',recovered_count, 'deceased_count: ',deceased_count)
     return confirmed_count, recovered_count, deceased_count
@@ -104,7 +151,9 @@ def Q1_2(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_count, recovered_count, deceased_count = count_from_start_to_end(extract_json_file(json_file_path), start_date, end_date, ['dl'])
+    confirmed_df, recovered_df, deceased_df      =       pre_process_data(json_file_path, start_date, end_date)
+    confirmed_count, recovered_count , deceased_count                 =       confirmed_df['dl'].sum(), recovered_df['dl'].sum(), deceased_df['dl'].sum()
+    
     print("\nQ1_2 :-\n ")
     print('confirmed_count: ',confirmed_count, 'recovered_count: ',recovered_count, 'deceased_count: ',deceased_count)
     return confirmed_count, recovered_count, deceased_count
@@ -118,57 +167,41 @@ def Q1_3(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_count, recovered_count, deceased_count = count_from_start_to_end(extract_json_file(json_file_path), start_date, end_date, ['dl', 'mh'])
+    states = ['dl', 'mh']
+    confirmed_df, recovered_df, deceased_df      =       pre_process_data(json_file_path, start_date, end_date)
+    confirmed_count, recovered_count , deceased_count                  =       confirmed_df[states].sum().sum(), recovered_df[states].sum().sum(), deceased_df[states].sum().sum()
+    
     print("\nQ1_3 :-\n ")
     print('confirmed_count: ',confirmed_count, 'recovered_count: ',recovered_count, 'deceased_count: ',deceased_count)
     return confirmed_count, recovered_count, deceased_count
 
 def Q1_4(json_file_path, start_date, end_date):
     """Q1 function
-    
     Args:
         json_file_path (TYPE): Description
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    highest_confirmed_count = [0, []]
-    highest_recovered_count = [0, []]
-    highest_deceased_count  = [0, []]
-    data = extract_json_file(json_file_path)
+    confirmed_df, recovered_df, deceased_df      =       pre_process_data(json_file_path, start_date, end_date)
+    confirmed_cumulative_sum = confirmed_df[states].cumsum().iloc[-1,:]
+    highest_confirmed_value = confirmed_cumulative_sum.max()
 
-    for state in  data[0]:
-        if len(state) == 2 and state != 'tt':
-            confirmed_count, recovered_count, deceased_count = count_from_start_to_end(data, start_date, end_date, [state])
-            if confirmed_count > highest_confirmed_count[0]:
-                highest_confirmed_count[0] = confirmed_count
-                highest_confirmed_count[1] = [state]
-            elif confirmed_count == highest_confirmed_count[0]:
-                highest_confirmed_count[1].append(state)
+    recovered_cumulative_sum = recovered_df[states].cumsum().iloc[-1,:]
+    highest_recovered_value = recovered_cumulative_sum.max()
 
-            if recovered_count > highest_recovered_count[0]:
-                highest_recovered_count[0] = recovered_count
-                highest_recovered_count[1] = [state]
-            elif recovered_count == highest_recovered_count[0]:
-                highest_recovered_count[1].append(state)
-                
-
-            if deceased_count > highest_deceased_count[0]:
-                highest_deceased_count[0] = deceased_count
-                highest_deceased_count[1] = [state]
-            elif deceased_count == highest_deceased_count[0]:
-                highest_deceased_count[1].append(state)
-                
+    deceased_cumulative_sum = deceased_df[states].cumsum().iloc[-1,:]
+    highest_deceased_value = deceased_cumulative_sum.max()
 
     print("\nQ1_4 :-\n ")
     print('Confirmed :- ')
-    print('Highest affected State is: ', highest_confirmed_count[1])
-    print('Highest affected State count is: ', highest_confirmed_count[0], '\n')
+    print('Highest affected State is: ', list(confirmed_cumulative_sum[confirmed_cumulative_sum.values == highest_confirmed_value].index))
+    print('Highest affected State count is: ', highest_confirmed_value, '\n')
     print('Recovered :- ')
-    print('Highest affected State is: ', highest_recovered_count[1])
-    print('Highest affected State count is: ', highest_recovered_count[0], '\n')
+    print('Highest affected State is: ', list(recovered_cumulative_sum[recovered_cumulative_sum.values == highest_recovered_value].index))
+    print('Highest affected State count is: ', highest_recovered_value, '\n')
     print('Deceased :- ')
-    print('Highest affected State is: ', highest_deceased_count[1])
-    print('Highest affected State count is: ', highest_deceased_count[0], '\n')
+    print('Highest affected State is: ', list(deceased_cumulative_sum[deceased_cumulative_sum.values == highest_deceased_value].index))
+    print('Highest affected State count is: ', highest_deceased_value, '\n')
 
 
 def Q1_5(json_file_path, start_date, end_date):
@@ -179,42 +212,26 @@ def Q1_5(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    lowest_confirmed_count = [sys.maxsize, []]
-    lowest_recovered_count = [sys.maxsize, []]
-    lowest_deceased_count  = [sys.maxsize, []]
-    data = extract_json_file(json_file_path)
+    confirmed_df, recovered_df, deceased_df      =       pre_process_data(json_file_path, start_date, end_date)
+    confirmed_cumulative_sum = confirmed_df[states].cumsum().iloc[-1,:]
+    lowest_confirmed_value = confirmed_cumulative_sum.min()
 
-    for state in  data[0]:
-        if len(state) == 2 and state != 'tt':
-            confirmed_count, recovered_count, deceased_count = count_from_start_to_end(data, start_date, end_date, [state])
-            if confirmed_count < lowest_confirmed_count[0]:
-                lowest_confirmed_count[0] = confirmed_count
-                lowest_confirmed_count[1] = [state]
-            elif confirmed_count == lowest_confirmed_count[0]:
-                lowest_confirmed_count[1].append(state)
+    recovered_cumulative_sum = recovered_df[states].cumsum().iloc[-1,:]
+    lowest_recovered_value = recovered_cumulative_sum.min()
 
-            if recovered_count < lowest_recovered_count[0]:
-                lowest_recovered_count[0] = recovered_count
-                lowest_recovered_count[1] = [state]
-            elif recovered_count == lowest_recovered_count[0]:
-                lowest_recovered_count[1].append(state)
-
-            if deceased_count < lowest_deceased_count[0]:
-                lowest_deceased_count[0] = deceased_count
-                lowest_deceased_count[1] = [state]
-            elif deceased_count == lowest_deceased_count[0]:
-                lowest_deceased_count[1].append(state)
+    deceased_cumulative_sum = deceased_df[states].cumsum().iloc[-1,:]
+    lowest_deceased_value = deceased_cumulative_sum.min()
 
     print("\nQ1_5 :-\n ")
     print('Confirmed :- ')
-    print('Lowest affected State is: ', lowest_confirmed_count[1])
-    print('Lowest affected State count is: ', lowest_confirmed_count[0], '\n')
+    print('Lowest affected State is: ', list(confirmed_cumulative_sum[confirmed_cumulative_sum.values == lowest_confirmed_value].index))
+    print('Lowest affected State count is: ', lowest_confirmed_value, '\n')
     print('Recovered :- ')
-    print('Lowest affected State is: ', lowest_recovered_count[1])
-    print('Lowest affected State count is: ', lowest_recovered_count[0], '\n')
+    print('Lowest affected State is: ', list(recovered_cumulative_sum[recovered_cumulative_sum.values == lowest_recovered_value].index))
+    print('Lowest affected State count is: ', lowest_recovered_value, '\n')
     print('Deceased :- ')
-    print('Lowest affected State is: ', lowest_deceased_count[1])
-    print('Lowest affected State count is: ', lowest_deceased_count[0], '\n')
+    print('Lowest affected State is: ', list(deceased_cumulative_sum[deceased_cumulative_sum.values == lowest_deceased_value].index))
+    print('Lowest affected State count is: ', lowest_deceased_value, '\n')
 
 
 def Q1_6(json_file_path, start_date, end_date):
@@ -225,38 +242,22 @@ def Q1_6(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    data = extract_json_file(json_file_path)
-    start_date, end_date = string_date_to_standard_date1(start_date), string_date_to_standard_date1(end_date)
-    highest_confirmed_count = [0, '']
-    highest_recovered_count = [0, '']
-    highest_deceased_count  = [0, '']
+    confirmed_df, recovered_df, deceased_df      =       pre_process_data(json_file_path, start_date, end_date)
     state = 'dl'
-    for day in data:
-        today_date = string_date_to_standard_date2(day['date'])
-        if start_date <= today_date and today_date <= end_date:
-            count = int(day[state])
-            if day['status'] == 'Confirmed' and count > highest_confirmed_count[0]:
-                highest_confirmed_count[0] = count
-                highest_confirmed_count[1] = day['date']
-
-            if day['status'] == 'Recovered' and count > highest_recovered_count[0]:
-                highest_recovered_count[0] = count
-                highest_recovered_count[1] = day['date']
-
-            if day['status'] == 'Deceased' and count > highest_deceased_count[0]:
-                highest_deceased_count[0] = count
-                highest_deceased_count[1] = day['date']
+    highest_confirmed_count = confirmed_df[state].max()
+    highest_recovered_count = recovered_df[state].max()
+    highest_deceased_count = deceased_df[state].max()
 
     print("\nQ1_6 :-\n ")
     print('Confirmed :- ')
-    print('Day: ', highest_confirmed_count[1])
-    print('Count: ',highest_confirmed_count[0],'\n')
+    print('Day: ', confirmed_df[confirmed_df[state] == highest_confirmed_count]['date'].to_string(index=False))
+    print('Count: ',highest_confirmed_count,'\n')
     print('Recovered :- ')
-    print('Day: ', highest_recovered_count[1])
-    print('Count: ', highest_recovered_count[0], '\n')
+    print('Day: ', recovered_df[recovered_df[state] == highest_recovered_count]['date'].to_string(index=False))
+    print('Count: ', highest_recovered_count, '\n')
     print('Deceased :- ')
-    print('Day: ', highest_deceased_count[1])
-    print('Count: ', highest_deceased_count[0], '\n')
+    print('Day: ', deceased_df[deceased_df[state] == highest_deceased_count]['date'].to_string(index=False))
+    print('Count: ', highest_deceased_count, '\n')
 
 
 def Q1_7(json_file_path, start_date, end_date):
@@ -267,14 +268,15 @@ def Q1_7(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    data = extract_json_file(json_file_path)
+    confirmed_df, recovered_df, deceased_df      =       pre_process_data(json_file_path, start_date, end_date)
+    confirmed_cumulative_sum = confirmed_df[states].cumsum().iloc[-1,:]
+    recovered_cumulative_sum = recovered_df[states].cumsum().iloc[-1,:]
+    deceased_cumulative_sum = deceased_df[states].cumsum().iloc[-1,:]
+
     print("\nQ1_7 :-\n ")
-    print("State\t\tActive Cases")
-    for state in  data[0]:
-        if len(state) == 2 and state != 'tt':
-            confirmed_count, recovered_count, deceased_count = count_from_start_to_end(data, start_date, end_date, [state])
-            print(state,"\t\t",confirmed_count - recovered_count - deceased_count)
-            
+    print("State \t\t\tActive_Cases")
+    for state in states:
+        print(state + "\t\t\t", confirmed_cumulative_sum[state] - recovered_cumulative_sum[state] - deceased_cumulative_sum[state])
     print() # print any way you want
 
 
@@ -312,6 +314,7 @@ def Q2_3(json_file_path, start_date, end_date):
     #plt.show()
     #plt.save()
 
+
 def Q3(json_file_path, start_date, end_date):
     """Q3 function
     
@@ -331,12 +334,12 @@ if __name__ == "__main__":
     end_date = "2020-09-05"
     
     Q1_1('states_daily.json', start_date, end_date)
-    # Q1_2('states_daily.json', start_date, end_date)
-    # Q1_3('states_daily.json', start_date, end_date)
+    Q1_2('states_daily.json', start_date, end_date)
+    Q1_3('states_daily.json', start_date, end_date)
     Q1_4('states_daily.json', start_date, end_date)
     Q1_5('states_daily.json', start_date, end_date)
-    # Q1_6('states_daily.json', start_date, end_date)
-    # Q1_7('states_daily.json', start_date, end_date)
+    Q1_6('states_daily.json', start_date, end_date)
+    Q1_7('states_daily.json', start_date, end_date)
     # Q2_1('states_daily.json', start_date, end_date)
     # Q2_2('states_daily.json', start_date, end_date)
     # Q2_3('states_daily.json', start_date, end_date)
