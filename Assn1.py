@@ -25,23 +25,13 @@ def string_date_to_standard_date2(date):
     '''
     Args:
         date : in string format, Ex - "15-Mar-20"
-
     return date in datetime.date format so that relational operator works on it
     '''
     try:
         date, mon, year = date.split('-')
-        mon_name_to_num = {'Jan' : 1,
-                           'Feb' : 2,
-                           'Mar' : 3,
-                           'Apr' : 4,
-                           'May' : 5,
-                           'Jun' : 6,
-                           'Jul' : 7,
-                           'Aug' : 8,
-                           'Sep' : 9,
-                           'Oct' : 10,
-                           'Nov' : 11,
-                           'Dec' : 12}
+        mon_name_to_num = {'Jan' : 1, 'Feb' : 2, 'Mar' : 3, 'Apr' : 4,
+                           'May' : 5, 'Jun' : 6, 'Jul' : 7, 'Aug' : 8,
+                           'Sep' : 9, 'Oct' : 10, 'Nov' : 11, 'Dec' : 12}
         mon = mon_name_to_num[mon]
         return datetime.datetime(2000 + int(year), mon, int(date))
     except:
@@ -292,7 +282,6 @@ def Q1_7(json_file_path, start_date, end_date):
 
 def Q2_1(json_file_path, start_date, end_date):
     """Q2 function
-    
     Args:
         json_file_path (TYPE): Description
         start_date (TYPE): Description
@@ -303,7 +292,6 @@ def Q2_1(json_file_path, start_date, end_date):
 
 def Q2_2(json_file_path, start_date, end_date):
     """Q2 function
-    
     Args:
         json_file_path (TYPE): Description
         start_date (TYPE): Description
@@ -315,7 +303,6 @@ def Q2_2(json_file_path, start_date, end_date):
 
 def Q2_3(json_file_path, start_date, end_date):
     """Q2 function
-    
     Args:
         json_file_path (TYPE): Description
         start_date (TYPE): Description
@@ -353,7 +340,7 @@ def Q3(json_file_path, start_date, end_date):
         sum_Y = sum(Y)
         sum_sq_X = sum([x * x for x in X])
         sum_sq_Y = sum([y * y for y in Y])
-        sum_XY = sum([x * y for x,y in zip(X, Y)])
+        sum_XY = sum([x * y for x, y in zip(X, Y)])
         intercept = (sum_Y * sum_sq_X - sum_X * sum_XY) / (n * sum_sq_X - sum_X**2)
         slope = (n * sum_XY - sum_X * sum_Y) / (n * sum_sq_X - sum_X**2)
         return intercept, slope
