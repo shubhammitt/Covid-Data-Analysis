@@ -1,6 +1,8 @@
 import json
 import datetime
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 # API usage : https://api.covid19india.org/documentation/statedaily.html
 
@@ -105,16 +107,13 @@ def string_to_int_cols(df, cols):
     for col_name in cols:
         df[col_name] = df[col_name].apply(str_to_int)
 
-def pre_process_data(json_file_path, start_date, end_date, include_UTs=True):
+def pre_process_data(json_file_path, start_date, end_date):
     '''
     '''
     cols = ['date', 'status', 'tt'] + states + uts
     start_date = string_date_to_standard_date1(start_date)
     end_date = string_date_to_standard_date1(end_date)
     df = json_to_df(json_file_path)
-
-    if not include_UTs:
-        cols.remove(uts)
     remove_useless_cols(df, cols)
     tranform_df_dates(df, 'date')
     remove_useless_rows(df, start_date, end_date)
@@ -291,6 +290,95 @@ def Q1_7(json_file_path, start_date, end_date):
         print(state + "\t\t\t", confirmed_cumulative_sum[state] - recovered_cumulative_sum[state] - deceased_cumulative_sum[state])
     print() # print any way you want
 
+def Q2_1(json_file_path, start_date, end_date):
+    """Q2 function
+    
+    Args:
+        json_file_path (TYPE): Description
+        start_date (TYPE): Description
+        end_date (TYPE): Description
+    """
+    #plt.show()
+    #plt.save()
+
+def Q2_2(json_file_path, start_date, end_date):
+    """Q2 function
+    
+    Args:
+        json_file_path (TYPE): Description
+        start_date (TYPE): Description
+        end_date (TYPE): Description
+    """
+    #plt.show()
+    #plt.save()
+
+
+def Q2_3(json_file_path, start_date, end_date):
+    """Q2 function
+    
+    Args:
+        json_file_path (TYPE): Description
+        start_date (TYPE): Description
+        end_date (TYPE): Description
+    """
+    #plt.show()
+    #plt.save()
+
+
+def Q3(json_file_path, start_date, end_date):
+    """Q3 function
+    Args:
+        json_file_path (TYPE): Description
+        start_date (TYPE): Description
+        end_date (TYPE): Description
+    """
+    state = 'dl'
+    confirmed_df, recovered_df, deceased_df = pre_process_data(json_file_path, start_date, end_date)
+    start_date = string_date_to_standard_date1(start_date)
+    end_date = string_date_to_standard_date1(end_date)
+
+    def getXY(df):
+        X = (df['date'] - start_date).to_list()
+        X = [i.days for i in X]
+        Y = df[state].tolist()
+        return X, Y
+
+    confirmed_X, confirmed_Y = getXY(confirmed_df)
+    recovered_X, recovered_Y = getXY(recovered_df)
+    deceased_X, deceased_Y = getXY(deceased_df)
+
+    def find_intercept_slope(X, Y):
+        n = len(X)
+        sum_X = sum(X)
+        sum_Y = sum(Y)
+        sum_sq_X = sum([x * x for x in X])
+        sum_sq_Y = sum([y * y for y in Y])
+        sum_XY = sum([x * y for x,y in zip(X, Y)])
+        intercept = (sum_Y * sum_sq_X - sum_X * sum_XY) / (n * sum_sq_X - sum_X**2)
+        slope = (n * sum_XY - sum_X * sum_Y) / (n * sum_sq_X - sum_X**2)
+        return intercept, slope
+
+    confirmed_intercept, confirmed_slope = find_intercept_slope(confirmed_X, confirmed_Y)
+    recovered_intercept, recovered_slope = find_intercept_slope(recovered_X, recovered_Y)
+    deceased_intercept, deceased_slope = find_intercept_slope(deceased_X, deceased_Y)
+
+    def plot(X, Y, slope, intercept):
+        plt.plot(X, Y)
+        axes = plt.gca()
+        x_vals = np.array(axes.get_xlim())
+        y_vals = intercept + slope * x_vals
+        plt.plot(x_vals, y_vals)
+        plt.show()
+
+    # plot(confirmed_X, confirmed_Y, confirmed_slope, confirmed_intercept)
+    # plot(recovered_X, recovered_Y, recovered_slope, recovered_intercept)
+    # plot(deceased_X, deceased_Y, deceased_slope, deceased_intercept)
+
+    return confirmed_intercept, confirmed_slope, recovered_intercept, recovered_slope, deceased_intercept, deceased_slope
+
+
+
+
 if __name__ == "__main__":
     # execute only if run as a script
     print('2018101 and 2018261') # Please put this first
@@ -298,13 +386,13 @@ if __name__ == "__main__":
     start_date = "2020-03-14"
     end_date = "2020-09-05"
 
-    Q1_1('states_daily.json', start_date, end_date)
-    Q1_2('states_daily.json', start_date, end_date)
-    Q1_3('states_daily.json', start_date, end_date)
-    Q1_4('states_daily.json', start_date, end_date)
-    Q1_5('states_daily.json', start_date, end_date)
-    Q1_6('states_daily.json', start_date, end_date)
-    Q1_7('states_daily.json', start_date, end_date)
+    # Q1_1('states_daily.json', start_date, end_date)
+    # Q1_2('states_daily.json', start_date, end_date)
+    # Q1_3('states_daily.json', start_date, end_date)
+    # Q1_4('states_daily.json', start_date, end_date)
+    # Q1_5('states_daily.json', start_date, end_date)
+    # Q1_6('states_daily.json', start_date, end_date)
+    # Q1_7('states_daily.json', start_date, end_date)
     # Q2_1('states_daily.json', start_date, end_date)
     # Q2_2('states_daily.json', start_date, end_date)
     # Q2_3('states_daily.json', start_date, end_date)
