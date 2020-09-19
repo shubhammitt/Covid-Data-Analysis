@@ -410,11 +410,11 @@ def Q3(json_file_path, start_date, end_date):
         deceased_X, deceased_Y)
 
     def plot(X, Y, slope, intercept):
-        plt.plot(X, Y)
+        plt.scatter(X, Y)
         axes = plt.gca()
         x_vals = np.array(axes.get_xlim())
         y_vals = intercept + slope * x_vals
-        plt.plot(x_vals, y_vals)
+        plt.plot(x_vals, y_vals, color='red')
         plt.show()
 
     # plot(confirmed_X, confirmed_Y, confirmed_slope, confirmed_intercept)
