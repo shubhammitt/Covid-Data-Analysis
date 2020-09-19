@@ -12,6 +12,7 @@ states = ['ap', 'ar', 'as', 'br', 'ct', 'dl', 'ga', 'gj',
           'tn', 'tr', 'up', 'ut', 'wb']
 uts = ['an', 'ch', 'dd', 'dn', 'jk', 'la', 'ld', 'py']
 
+
 def string_date_to_standard_date1(date):
     '''
     Args:
@@ -21,6 +22,7 @@ def string_date_to_standard_date1(date):
     year, mon, date = map(int, date.split('-'))
     return datetime.datetime(year, mon, date)
 
+
 def string_date_to_standard_date2(date):
     '''
     Args:
@@ -29,13 +31,14 @@ def string_date_to_standard_date2(date):
     '''
     try:
         date, mon, year = date.split('-')
-        mon_name_to_num = {'Jan' : 1, 'Feb' : 2, 'Mar' : 3, 'Apr' : 4,
-                           'May' : 5, 'Jun' : 6, 'Jul' : 7, 'Aug' : 8,
-                           'Sep' : 9, 'Oct' : 10, 'Nov' : 11, 'Dec' : 12}
+        mon_name_to_num = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
+                           'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
+                           'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12}
         mon = mon_name_to_num[mon]
         return datetime.datetime(2000 + int(year), mon, int(date))
-    except:
+    except BaseException:
         return None
+
 
 def json_to_df(json_file_path):
     '''
@@ -46,7 +49,7 @@ def json_to_df(json_file_path):
     try:
         with open(json_file_path) as json_file:
             dataset = json.load(json_file)['states_daily']
-    except:
+    except BaseException:
         print("File not found!!")
         exit(1)
 
@@ -61,12 +64,14 @@ def json_to_df(json_file_path):
 
     return df
 
+
 def remove_useless_cols(df, cols):
     '''
         remove useless columns from dataframe
     '''
     cols = [col_name for col_name in df.columns if col_name not in cols]
     df.drop(cols, axis=1, inplace=True)
+
 
 def tranform_df_dates(df, date):
     '''
@@ -76,11 +81,14 @@ def tranform_df_dates(df, date):
     df[date] = df[date].apply(string_date_to_standard_date2)
     df.dropna(subset=[date], inplace=True)
 
+
 def remove_useless_rows(df, start_date, end_date):
     '''
         removes those rows from dataframe whose dates are not between start_date and end_date
     '''
-    df.drop(df[(start_date > df['date']) | (df['date'] > end_date)].index, axis=0, inplace=True)
+    df.drop(df[(start_date > df['date']) | (
+        df['date'] > end_date)].index, axis=0, inplace=True)
+
 
 def change_col_pos(df, cols):
     '''
@@ -91,6 +99,7 @@ def change_col_pos(df, cols):
         col = df.pop(col_name)
         df.insert(idx, col_name, col)
 
+
 def str_to_int(x):
     '''
         convert string to integer and if there is any error then return 0
@@ -98,8 +107,9 @@ def str_to_int(x):
     try:
         x = int(x)
         return x
-    except:
+    except BaseException:
         return 0
+
 
 def string_to_int_cols(df, cols):
     '''
@@ -108,6 +118,7 @@ def string_to_int_cols(df, cols):
     rows = df.shape[0]
     for col_name in cols:
         df[col_name] = df[col_name].apply(str_to_int)
+
 
 def pre_process_data(json_file_path, start_date, end_date):
     '''
@@ -118,11 +129,11 @@ def pre_process_data(json_file_path, start_date, end_date):
     try:
         start_date = string_date_to_standard_date1(start_date)
         end_date = string_date_to_standard_date1(end_date)
-    except:
+    except BaseException:
         print("Please enter valid dates in YYYY-MM-DD fomat!!")
         exit(1)
 
-    if start_date > end_date :
+    if start_date > end_date:
         print("Enter start_date less than end_date!!")
         exit(1)
 
@@ -144,6 +155,7 @@ def pre_process_data(json_file_path, start_date, end_date):
 
     return confirmed_df, recovered_df, deceased_df
 
+
 def Q1_1(json_file_path, start_date, end_date):
     """Q1 function
     Args:
@@ -151,7 +163,8 @@ def Q1_1(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_df, recovered_df, deceased_df = pre_process_data(json_file_path, start_date, end_date)
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
     confirmed_count = confirmed_df['tt'].sum()
     recovered_count = recovered_df['tt'].sum()
     deceased_count = deceased_df['tt'].sum()
@@ -168,7 +181,8 @@ def Q1_2(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_df, recovered_df, deceased_df = pre_process_data(json_file_path, start_date, end_date)
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
     state = 'dl'
     confirmed_count = confirmed_df[state].sum()
     recovered_count = recovered_df[state].sum()
@@ -188,7 +202,8 @@ def Q1_3(json_file_path, start_date, end_date):
         end_date (TYPE): Description
     """
     states = ['dl', 'mh']
-    confirmed_df, recovered_df, deceased_df = pre_process_data(json_file_path, start_date, end_date)
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
     confirmed_count = confirmed_df[states].sum().sum()
     recovered_count = recovered_df[states].sum().sum()
     deceased_count = deceased_df[states].sum().sum()
@@ -198,6 +213,7 @@ def Q1_3(json_file_path, start_date, end_date):
           recovered_count, 'deceased_count: ', deceased_count)
     return confirmed_count, recovered_count, deceased_count
 
+
 def Q1_4(json_file_path, start_date, end_date):
     """Q1 function
     Args:
@@ -205,7 +221,8 @@ def Q1_4(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_df, recovered_df, deceased_df = pre_process_data(json_file_path, start_date, end_date)
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
     confirmed_cumulative_sum = confirmed_df[states].cumsum().iloc[-1, :]
     highest_confirmed_value = confirmed_cumulative_sum.max()
 
@@ -217,16 +234,16 @@ def Q1_4(json_file_path, start_date, end_date):
 
     print("\nQ1_4 :-\n ")
     print('Confirmed :- ')
-    print('Highest affected State is: ',
-          list(confirmed_cumulative_sum[confirmed_cumulative_sum.values == highest_confirmed_value].index))
+    print('Highest affected State is: ', list(
+        confirmed_cumulative_sum[confirmed_cumulative_sum.values == highest_confirmed_value].index))
     print('Highest affected State count is: ', highest_confirmed_value, '\n')
     print('Recovered :- ')
-    print('Highest affected State is: ',
-          list(recovered_cumulative_sum[recovered_cumulative_sum.values == highest_recovered_value].index))
+    print('Highest affected State is: ', list(
+        recovered_cumulative_sum[recovered_cumulative_sum.values == highest_recovered_value].index))
     print('Highest affected State count is: ', highest_recovered_value, '\n')
     print('Deceased :- ')
-    print('Highest affected State is: ',
-          list(deceased_cumulative_sum[deceased_cumulative_sum.values == highest_deceased_value].index))
+    print('Highest affected State is: ', list(
+        deceased_cumulative_sum[deceased_cumulative_sum.values == highest_deceased_value].index))
     print('Highest affected State count is: ', highest_deceased_value, '\n')
 
 
@@ -237,7 +254,8 @@ def Q1_5(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_df, recovered_df, deceased_df = pre_process_data(json_file_path, start_date, end_date)
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
     confirmed_cumulative_sum = confirmed_df[states].cumsum().iloc[-1, :]
     lowest_confirmed_value = confirmed_cumulative_sum.min()
 
@@ -249,16 +267,16 @@ def Q1_5(json_file_path, start_date, end_date):
 
     print("\nQ1_5 :-\n ")
     print('Confirmed :- ')
-    print('Lowest affected State is: ',
-          list(confirmed_cumulative_sum[confirmed_cumulative_sum.values == lowest_confirmed_value].index))
+    print('Lowest affected State is: ', list(
+        confirmed_cumulative_sum[confirmed_cumulative_sum.values == lowest_confirmed_value].index))
     print('Lowest affected State count is: ', lowest_confirmed_value, '\n')
     print('Recovered :- ')
-    print('Lowest affected State is: ',
-          list(recovered_cumulative_sum[recovered_cumulative_sum.values == lowest_recovered_value].index))
+    print('Lowest affected State is: ', list(
+        recovered_cumulative_sum[recovered_cumulative_sum.values == lowest_recovered_value].index))
     print('Lowest affected State count is: ', lowest_recovered_value, '\n')
     print('Deceased :- ')
-    print('Lowest affected State is: ',
-          list(deceased_cumulative_sum[deceased_cumulative_sum.values == lowest_deceased_value].index))
+    print('Lowest affected State is: ', list(
+        deceased_cumulative_sum[deceased_cumulative_sum.values == lowest_deceased_value].index))
     print('Lowest affected State count is: ', lowest_deceased_value, '\n')
 
 
@@ -269,7 +287,8 @@ def Q1_6(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_df, recovered_df, deceased_df = pre_process_data(json_file_path, start_date, end_date)
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
     state = 'dl'
     highest_confirmed_count = confirmed_df[state].max()
     highest_recovered_count = recovered_df[state].max()
@@ -277,13 +296,16 @@ def Q1_6(json_file_path, start_date, end_date):
 
     print("\nQ1_6 :-\n ")
     print('Confirmed :- ')
-    print('Day: ', confirmed_df[confirmed_df[state] == highest_confirmed_count]['date'].to_string(index=False))
+    print('Day: ', confirmed_df[confirmed_df[state] ==
+                                highest_confirmed_count]['date'].to_string(index=False))
     print('Count: ', highest_confirmed_count, '\n')
     print('Recovered :- ')
-    print('Day: ', recovered_df[recovered_df[state] == highest_recovered_count]['date'].to_string(index=False))
+    print('Day: ', recovered_df[recovered_df[state] ==
+                                highest_recovered_count]['date'].to_string(index=False))
     print('Count: ', highest_recovered_count, '\n')
     print('Deceased :- ')
-    print('Day: ', deceased_df[deceased_df[state] == highest_deceased_count]['date'].to_string(index=False))
+    print('Day: ', deceased_df[deceased_df[state] ==
+                               highest_deceased_count]['date'].to_string(index=False))
     print('Count: ', highest_deceased_count, '\n')
 
 
@@ -294,7 +316,8 @@ def Q1_7(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    confirmed_df, recovered_df, deceased_df = pre_process_data(json_file_path, start_date, end_date)
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
     confirmed_cumulative_sum = confirmed_df[states].cumsum().iloc[-1, :]
     recovered_cumulative_sum = recovered_df[states].cumsum().iloc[-1, :]
     deceased_cumulative_sum = deceased_df[states].cumsum().iloc[-1, :]
@@ -302,8 +325,14 @@ def Q1_7(json_file_path, start_date, end_date):
     print("\nQ1_7 :-\n ")
     print("State \t\t\tActive_Cases")
     for state in states:
-        print(state + "\t\t\t", confirmed_cumulative_sum[state] - recovered_cumulative_sum[state] - deceased_cumulative_sum[state])
-    print() # print any way you want
+        print(
+            state +
+            "\t\t\t",
+            confirmed_cumulative_sum[state] -
+            recovered_cumulative_sum[state] -
+            deceased_cumulative_sum[state])
+    print()  # print any way you want
+
 
 def Q2_1(json_file_path, start_date, end_date):
     """Q2 function
@@ -312,8 +341,9 @@ def Q2_1(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    #plt.show()
-    #plt.save()
+    # plt.show()
+    # plt.save()
+
 
 def Q2_2(json_file_path, start_date, end_date):
     """Q2 function
@@ -322,8 +352,8 @@ def Q2_2(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    #plt.show()
-    #plt.save()
+    # plt.show()
+    # plt.save()
 
 
 def Q2_3(json_file_path, start_date, end_date):
@@ -333,8 +363,8 @@ def Q2_3(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-    #plt.show()
-    #plt.save()
+    # plt.show()
+    # plt.save()
 
 
 def Q3(json_file_path, start_date, end_date):
@@ -345,7 +375,8 @@ def Q3(json_file_path, start_date, end_date):
         end_date (TYPE): Description
     """
     state = 'dl'
-    confirmed_df, recovered_df, deceased_df = pre_process_data(json_file_path, start_date, end_date)
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
     start_date = string_date_to_standard_date1(start_date)
     end_date = string_date_to_standard_date1(end_date)
 
@@ -366,13 +397,17 @@ def Q3(json_file_path, start_date, end_date):
         sum_sq_X = sum([x * x for x in X])
         sum_sq_Y = sum([y * y for y in Y])
         sum_XY = sum([x * y for x, y in zip(X, Y)])
-        intercept = (sum_Y * sum_sq_X - sum_X * sum_XY) / (n * sum_sq_X - sum_X**2)
+        intercept = (sum_Y * sum_sq_X - sum_X * sum_XY) / \
+            (n * sum_sq_X - sum_X**2)
         slope = (n * sum_XY - sum_X * sum_Y) / (n * sum_sq_X - sum_X**2)
         return intercept, slope
 
-    confirmed_intercept, confirmed_slope = find_intercept_slope(confirmed_X, confirmed_Y)
-    recovered_intercept, recovered_slope = find_intercept_slope(recovered_X, recovered_Y)
-    deceased_intercept, deceased_slope = find_intercept_slope(deceased_X, deceased_Y)
+    confirmed_intercept, confirmed_slope = find_intercept_slope(
+        confirmed_X, confirmed_Y)
+    recovered_intercept, recovered_slope = find_intercept_slope(
+        recovered_X, recovered_Y)
+    deceased_intercept, deceased_slope = find_intercept_slope(
+        deceased_X, deceased_Y)
 
     def plot(X, Y, slope, intercept):
         plt.plot(X, Y)
@@ -387,15 +422,19 @@ def Q3(json_file_path, start_date, end_date):
     # plot(deceased_X, deceased_Y, deceased_slope, deceased_intercept)
 
     print('\nQ3 :-\n')
-    print(confirmed_intercept, confirmed_slope, recovered_intercept, recovered_slope, deceased_intercept, deceased_slope)
+    print(
+        confirmed_intercept,
+        confirmed_slope,
+        recovered_intercept,
+        recovered_slope,
+        deceased_intercept,
+        deceased_slope)
     return confirmed_intercept, confirmed_slope, recovered_intercept, recovered_slope, deceased_intercept, deceased_slope
-
-
 
 
 if __name__ == "__main__":
     # execute only if run as a script
-    print('2018101 and 2018261') # Please put this first
+    print('2018101 and 2018261')  # Please put this first
 
     start_date = "2020-03-14"
     end_date = "2020-09-05"
