@@ -136,7 +136,7 @@ def string_to_int_cols(df, cols):
 def pre_process_data(json_file_path, start_date, end_date):
     '''
     '''
-    cols = ['date', 'status', 'tt'] + states + uts
+    cols = ['date', 'status'] + states + uts
     df = json_to_df(json_file_path)
     start_date = string_date_to_standard_date1(start_date)
     end_date = string_date_to_standard_date1(end_date)
@@ -148,8 +148,8 @@ def pre_process_data(json_file_path, start_date, end_date):
     remove_useless_cols(df, cols)
     tranform_df_dates(df, 'date')
     remove_useless_rows(df, start_date, end_date)
-    change_col_pos(df, ['date', 'status', 'tt'] + uts)
-    string_to_int_cols(df, ['tt'] + states + uts)
+    change_col_pos(df, ['date', 'status'] + uts)
+    string_to_int_cols(df, states + uts)
     df.sort_values(by=['date'])
 
     confirmed_df = df.loc[df['status'] == 'Confirmed'].copy()
@@ -341,6 +341,20 @@ def Q1_7(json_file_path, start_date, end_date):
             deceased_cumulative_sum[state])
     print()  
 
+def getXY(df, start_date, states):
+    X = (df['date'] - start_date).to_list()
+    X = [i.days for i in X]
+    Y = []
+    for ind in df.index: 
+        c = 0
+        for j in states:
+            c += df[j][ind]
+        Y.append(c)
+    _Y = [Y[0]]
+    for i in range(1, len(Y)):
+        _Y.append(_Y[-1] + Y[i])
+    return X, _Y
+
 
 def Q2_1(json_file_path, start_date, end_date):
     """Q2 function
@@ -349,6 +363,30 @@ def Q2_1(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
+
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
+    start_date = string_date_to_standard_date1(start_date)
+    end_date = string_date_to_standard_date1(end_date)
+    confirmed_X, confirmed_Y = getXY(confirmed_df, start_date, states + uts)
+    recovered_X, recovered_Y = getXY(recovered_df, start_date, states + uts)
+    deceased_X, deceased_Y = getXY(deceased_df, start_date, states + uts)
+
+    name = "Q2_1"
+    plt.title(name)
+    plt.plot(confirmed_X, confirmed_Y, label="Confirmed")
+    plt.plot(recovered_X, recovered_Y, label="Recovered")
+    plt.plot(deceased_X, deceased_Y, label="Deceased")
+
+    plt.savefig(name, dpi=100)
+    plt.show()
+    plt.close(plt.figure())
+    plt.clf()
+
+
+    # print(X, Y)
+
+
     # plt.show()
     # plt.save()
 
@@ -360,6 +398,24 @@ def Q2_2(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
+    start_date = string_date_to_standard_date1(start_date)
+    end_date = string_date_to_standard_date1(end_date)
+    confirmed_X, confirmed_Y = getXY(confirmed_df, start_date, ['dl'])
+    recovered_X, recovered_Y = getXY(recovered_df, start_date, ['dl'])
+    deceased_X, deceased_Y = getXY(deceased_df, start_date, ['dl'])
+
+    name = "Q2_2"
+    plt.title(name)
+    plt.plot(confirmed_X, confirmed_Y, label="Confirmed")
+    plt.plot(recovered_X, recovered_Y, label="Recovered")
+    plt.plot(deceased_X, deceased_Y, label="Deceased")
+
+    plt.savefig(name, dpi=100)
+    plt.show()
+    plt.close(plt.figure())
+    plt.clf()
     # plt.show()
     # plt.save()
 
@@ -371,6 +427,27 @@ def Q2_3(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
+    confirmed_df, recovered_df, deceased_df = pre_process_data(
+        json_file_path, start_date, end_date)
+    start_date = string_date_to_standard_date1(start_date)
+    end_date = string_date_to_standard_date1(end_date)
+    confirmed_X, confirmed_Y = getXY(confirmed_df, start_date, states + uts)
+    recovered_X, recovered_Y = getXY(recovered_df, start_date, states + uts)
+    deceased_X, deceased_Y = getXY(deceased_df, start_date, states + uts)
+
+    active_X, active_Y = confirmed_X, []
+
+    for i in range(len(active_X)):
+        active_Y.append(confirmed_Y[i] - recovered_Y[i] - deceased_Y[i])
+
+    name = "Q2_3"
+    plt.title(name)
+    plt.plot(active_X, active_Y, label="Active")
+
+    plt.savefig(name, dpi=100)
+    plt.show()
+    plt.close(plt.figure())
+    plt.clf()
     # plt.show()
     # plt.save()
 
@@ -459,7 +536,7 @@ if __name__ == "__main__":
     Q1_5('states_daily.json', start_date, end_date)
     Q1_6('states_daily.json', start_date, end_date)
     Q1_7('states_daily.json', start_date, end_date)
-    # Q2_1('states_daily.json', start_date, end_date)
-    # Q2_2('states_daily.json', start_date, end_date)
-    # Q2_3('states_daily.json', start_date, end_date)
+    Q2_1('states_daily.json', start_date, end_date)
+    Q2_2('states_daily.json', start_date, end_date)
+    Q2_3('states_daily.json', start_date, end_date)
     Q3('states_daily.json', start_date, end_date)
