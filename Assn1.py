@@ -374,9 +374,13 @@ def Q2_1(json_file_path, start_date, end_date):
 
     name = "Q2_1"
     plt.title(name)
-    plt.plot(confirmed_X, confirmed_Y, label="Confirmed")
-    plt.plot(recovered_X, recovered_Y, label="Recovered")
-    plt.plot(deceased_X, deceased_Y, label="Deceased")
+    # fig, (ax1) = plt.subplots(1,1)
+    # plt.plot(confirmed_X, confirmed_Y, label="Confirmed")
+    # plt.plot(recovered_X, recovered_Y, label="Recovered")
+    # plt.plot(deceased_X, deceased_Y, label="Deceased")
+    plt.fill_between(confirmed_X, 0, confirmed_Y, color='red', label="Confirmed")
+    plt.fill_between(recovered_X, 0, recovered_Y, color='blue', label="Recovered")
+    plt.fill_between(deceased_X, 0, deceased_Y, color='green', label="Deceased")
 
     plt.savefig(name, dpi=100)
     plt.show()
@@ -408,9 +412,13 @@ def Q2_2(json_file_path, start_date, end_date):
 
     name = "Q2_2"
     plt.title(name)
-    plt.plot(confirmed_X, confirmed_Y, label="Confirmed")
-    plt.plot(recovered_X, recovered_Y, label="Recovered")
-    plt.plot(deceased_X, deceased_Y, label="Deceased")
+    # fig, (ax1) = plt.subplots(1,1)
+    # plt.plot(confirmed_X, confirmed_Y, label="Confirmed")
+    # plt.plot(recovered_X, recovered_Y, label="Recovered")
+    # plt.plot(deceased_X, deceased_Y, label="Deceased")
+    plt.fill_between(confirmed_X, 0, confirmed_Y, color='red', label="Confirmed")
+    plt.fill_between(recovered_X, 0, recovered_Y, color='blue', label="Recovered")
+    plt.fill_between(deceased_X, 0, deceased_Y, color='green', label="Deceased")
 
     plt.savefig(name, dpi=100)
     plt.show()
@@ -442,7 +450,9 @@ def Q2_3(json_file_path, start_date, end_date):
 
     name = "Q2_3"
     plt.title(name)
-    plt.plot(active_X, active_Y, label="Active")
+    # fig, (ax1) = plt.subplots(1,1)
+    # plt.plot(active_X, active_Y, label="Active")
+    plt.fill_between(active_X, 0, active_Y, color='red', label="Active")
 
     plt.savefig(name, dpi=100)
     plt.show()
