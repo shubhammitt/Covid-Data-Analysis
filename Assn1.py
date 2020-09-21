@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 
 # API usage : https://api.covid19india.org/documentation/statedaily.html
 
-states = ['ap', 'ar', 'as', 'br', 'ct', 'dl', 'ga', 'gj',
-          'hp', 'hr', 'jh', 'ka', 'kl', 'mh', 'ml', 'mn',
-          'mp', 'mz', 'nl', 'or', 'pb', 'rj', 'sk', 'tg',
-          'tn', 'tr', 'up', 'ut', 'wb']
-uts = ['an', 'ch', 'dd', 'dn', 'jk', 'la', 'ld', 'py']
+states = ['ap', 'ar', 'as', 'br', 'ct', 'ga', 'gj', 'hp',
+          'hr', 'jh', 'ka', 'kl', 'mh', 'ml', 'mn', 'mp',
+          'mz', 'nl', 'or', 'pb', 'rj', 'sk', 'tg', 'tn',
+          'tr', 'up', 'ut', 'wb']
+uts = ['an', 'ch', 'dd', 'dl', 'dn', 'jk', 'la', 'ld', 'py']
 
 
 def string_date_to_standard_date1(date):
@@ -19,8 +19,13 @@ def string_date_to_standard_date1(date):
         date : in string format, Ex - "2020-03-14"
     return date in datetime.date format so that relational operator works on it
     '''
-    year, mon, date = map(int, date.split('-'))
-    return datetime.datetime(year, mon, date)
+    try:
+        year, mon, date = map(int, date.split('-'))
+        return datetime.datetime(year, mon, date)
+    except:
+        print("Please enter dates in YYYY-MM-DD format!")
+        exit(1)
+
 
 
 def string_date_to_standard_date2(date):
@@ -36,7 +41,7 @@ def string_date_to_standard_date2(date):
                            'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12}
         mon = mon_name_to_num[mon]
         return datetime.datetime(2000 + int(year), mon, int(date))
-    except BaseException:
+    except:
         return None
 
 
@@ -49,15 +54,17 @@ def json_to_df(json_file_path):
     try:
         with open(json_file_path) as json_file:
             dataset = json.load(json_file)['states_daily']
-    except BaseException:
+    except:
         print("File not found!!")
         exit(1)
 
+    # Remove those states from global list which are not in data
     df = pd.DataFrame(dataset)
     for state in states:
         if state not in df.columns:
             states.remove(state)
 
+    # Remove those UT's from global list which are not in data
     for ut in uts:
         if ut not in df.columns:
             uts.remove(ut)
@@ -67,6 +74,9 @@ def json_to_df(json_file_path):
 
 def remove_useless_cols(df, cols):
     '''
+    Args:
+        cols - columns which we dont want to drop
+    Function:
         remove useless columns from dataframe
     '''
     cols = [col_name for col_name in df.columns if col_name not in cols]
@@ -75,6 +85,7 @@ def remove_useless_cols(df, cols):
 
 def tranform_df_dates(df, date):
     '''
+    Function:
         convert string date to datetime.date in 'date' column
         and if there is some issue while converting than remove that row
     '''
@@ -84,6 +95,7 @@ def tranform_df_dates(df, date):
 
 def remove_useless_rows(df, start_date, end_date):
     '''
+    Function:
         removes those rows from dataframe whose dates are not between start_date and end_date
     '''
     df.drop(df[(start_date > df['date']) | (
@@ -100,6 +112,7 @@ def change_col_pos(df, cols):
         df.insert(idx, col_name, col)
 
 
+
 def str_to_int(x):
     '''
         convert string to integer and if there is any error then return 0
@@ -107,7 +120,7 @@ def str_to_int(x):
     try:
         x = int(x)
         return x
-    except BaseException:
+    except:
         return 0
 
 
@@ -125,13 +138,8 @@ def pre_process_data(json_file_path, start_date, end_date):
     '''
     cols = ['date', 'status', 'tt'] + states + uts
     df = json_to_df(json_file_path)
-
-    try:
-        start_date = string_date_to_standard_date1(start_date)
-        end_date = string_date_to_standard_date1(end_date)
-    except BaseException:
-        print("Please enter valid dates in YYYY-MM-DD fomat!!")
-        exit(1)
+    start_date = string_date_to_standard_date1(start_date)
+    end_date = string_date_to_standard_date1(end_date)
 
     if start_date > end_date:
         print("Enter start_date less than end_date!!")
@@ -165,9 +173,9 @@ def Q1_1(json_file_path, start_date, end_date):
     """
     confirmed_df, recovered_df, deceased_df = pre_process_data(
         json_file_path, start_date, end_date)
-    confirmed_count = confirmed_df['tt'].sum()
-    recovered_count = recovered_df['tt'].sum()
-    deceased_count = deceased_df['tt'].sum()
+    confirmed_count = confirmed_df[states + uts].sum().sum()
+    recovered_count = recovered_df[states + uts].sum().sum()
+    deceased_count = deceased_df[states + uts].sum().sum()
     print("\nQ1_1 :-\n ")
     print('confirmed_count: ', confirmed_count, 'recovered_count: ',
           recovered_count, 'deceased_count: ', deceased_count)
@@ -331,7 +339,7 @@ def Q1_7(json_file_path, start_date, end_date):
             confirmed_cumulative_sum[state] -
             recovered_cumulative_sum[state] -
             deceased_cumulative_sum[state])
-    print()  # print any way you want
+    print()  
 
 
 def Q2_1(json_file_path, start_date, end_date):
@@ -397,8 +405,7 @@ def Q3(json_file_path, start_date, end_date):
         sum_sq_X = sum([x * x for x in X])
         sum_sq_Y = sum([y * y for y in Y])
         sum_XY = sum([x * y for x, y in zip(X, Y)])
-        intercept = (sum_Y * sum_sq_X - sum_X * sum_XY) / \
-            (n * sum_sq_X - sum_X**2)
+        intercept = (sum_Y * sum_sq_X - sum_X * sum_XY) / (n * sum_sq_X - sum_X**2)
         slope = (n * sum_XY - sum_X * sum_Y) / (n * sum_sq_X - sum_X**2)
         return intercept, slope
 
