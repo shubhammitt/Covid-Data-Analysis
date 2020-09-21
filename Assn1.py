@@ -416,17 +416,23 @@ def Q3(json_file_path, start_date, end_date):
     deceased_intercept, deceased_slope = find_intercept_slope(
         deceased_X, deceased_Y)
 
-    def plot(X, Y, slope, intercept):
-        plt.scatter(X, Y)
+    def plot(X, Y, slope, intercept, name):
+        plt.scatter(X, Y, s=10)
+        plt.title(name)
+        plt.xlabel("Number of days from start_date")
+        plt.ylabel("Number of cases")
         axes = plt.gca()
         x_vals = np.array(axes.get_xlim())
         y_vals = intercept + slope * x_vals
         plt.plot(x_vals, y_vals, color='red')
-        plt.show()
+        plt.savefig(name, dpi=100)
+        # plt.show()
+        plt.close(plt.figure())
+        plt.clf()
 
-    # plot(confirmed_X, confirmed_Y, confirmed_slope, confirmed_intercept)
-    # plot(recovered_X, recovered_Y, recovered_slope, recovered_intercept)
-    # plot(deceased_X, deceased_Y, deceased_slope, deceased_intercept)
+    # plot(confirmed_X, confirmed_Y, confirmed_slope, confirmed_intercept, "confirmed_Q3")
+    # plot(recovered_X, recovered_Y, recovered_slope, recovered_intercept, "recovered_Q3")
+    # plot(deceased_X, deceased_Y, deceased_slope, deceased_intercept, "deceased_Q3")
 
     print('\nQ3 :-\n')
     print(
