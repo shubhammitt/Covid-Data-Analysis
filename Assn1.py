@@ -27,7 +27,6 @@ def string_date_to_standard_date1(date):
         exit(1)
 
 
-
 def string_date_to_standard_date2(date):
     '''
     Args:
@@ -110,7 +109,6 @@ def change_col_pos(df, cols):
     for idx, col_name in enumerate(cols):
         col = df.pop(col_name)
         df.insert(idx, col_name, col)
-
 
 
 def str_to_int(x):
@@ -339,21 +337,14 @@ def Q1_7(json_file_path, start_date, end_date):
             confirmed_cumulative_sum[state] -
             recovered_cumulative_sum[state] -
             deceased_cumulative_sum[state])
-    print()  
+    print()
+
 
 def getXY(df, start_date, states):
     X = (df['date'] - start_date).to_list()
     X = [i.days for i in X]
-    Y = []
-    for ind in df.index: 
-        c = 0
-        for j in states:
-            c += df[j][ind]
-        Y.append(c)
-    _Y = [Y[0]]
-    for i in range(1, len(Y)):
-        _Y.append(_Y[-1] + Y[i])
-    return X, _Y
+    Y = df[states].sum(axis=1).cumsum().tolist()
+    return X, Y
 
 
 def Q2_1(json_file_path, start_date, end_date):
@@ -363,29 +354,47 @@ def Q2_1(json_file_path, start_date, end_date):
         start_date (TYPE): Description
         end_date (TYPE): Description
     """
-
     confirmed_df, recovered_df, deceased_df = pre_process_data(
         json_file_path, start_date, end_date)
+
     start_date = string_date_to_standard_date1(start_date)
     end_date = string_date_to_standard_date1(end_date)
+
     confirmed_X, confirmed_Y = getXY(confirmed_df, start_date, states + uts)
     recovered_X, recovered_Y = getXY(recovered_df, start_date, states + uts)
     deceased_X, deceased_Y = getXY(deceased_df, start_date, states + uts)
 
     name = "Q2_1"
     plt.title(name)
-    plt.fill_between(confirmed_X, 0, confirmed_Y,alpha=0.5 ,color='red', label="Confirmed")
-    plt.fill_between(recovered_X, 0, recovered_Y, alpha=0.5,color='blue', label="Recovered")
-    plt.fill_between(deceased_X, 0, deceased_Y, color='green', label="Deceased",alpha=0.8)
+    plt.xlabel("Number of days from - " + str(start_date))
+    plt.ylabel("Number of cases")
+    plt.fill_between(
+        confirmed_X,
+        0,
+        confirmed_Y,
+        alpha=0.5,
+        color='red',
+        label="Confirmed")
+    plt.fill_between(
+        recovered_X,
+        0,
+        recovered_Y,
+        alpha=0.5,
+        color='blue',
+        label="Recovered")
+    plt.fill_between(
+        deceased_X,
+        0,
+        deceased_Y,
+        alpha=0.8,
+        color='green',
+        label="Deceased")
 
     plt.legend(loc=2)
-    plt.savefig(name, dpi=100)
+    plt.savefig(name)
     plt.show()
     plt.close(plt.figure())
     plt.clf()
-
-    # plt.show()
-    # plt.save()
 
 
 def Q2_2(json_file_path, start_date, end_date):
@@ -399,23 +408,42 @@ def Q2_2(json_file_path, start_date, end_date):
         json_file_path, start_date, end_date)
     start_date = string_date_to_standard_date1(start_date)
     end_date = string_date_to_standard_date1(end_date)
+
     confirmed_X, confirmed_Y = getXY(confirmed_df, start_date, ['dl'])
     recovered_X, recovered_Y = getXY(recovered_df, start_date, ['dl'])
     deceased_X, deceased_Y = getXY(deceased_df, start_date, ['dl'])
 
     name = "Q2_2"
     plt.title(name)
-    plt.fill_between(confirmed_X, 0, confirmed_Y, color='red', label="Confirmed", alpha=0.5)
-    plt.fill_between(recovered_X, 0, recovered_Y, color='blue', label="Recovered", alpha=0.5)
-    plt.fill_between(deceased_X, 0, deceased_Y, color='green', label="Deceased", alpha=0.8)
+    plt.xlabel("Number of days from - " + str(start_date))
+    plt.ylabel("Number of cases")
+    plt.fill_between(
+        confirmed_X,
+        0,
+        confirmed_Y,
+        color='red',
+        label="Confirmed",
+        alpha=0.5)
+    plt.fill_between(
+        recovered_X,
+        0,
+        recovered_Y,
+        color='blue',
+        label="Recovered",
+        alpha=0.5)
+    plt.fill_between(
+        deceased_X,
+        0,
+        deceased_Y,
+        color='green',
+        label="Deceased",
+        alpha=0.8)
 
     plt.legend(loc=2)
-    plt.savefig(name, dpi=100)
+    plt.savefig(name)
     plt.show()
     plt.close(plt.figure())
     plt.clf()
-    # plt.show()
-    # plt.save()
 
 
 def Q2_3(json_file_path, start_date, end_date):
@@ -429,10 +457,10 @@ def Q2_3(json_file_path, start_date, end_date):
         json_file_path, start_date, end_date)
     start_date = string_date_to_standard_date1(start_date)
     end_date = string_date_to_standard_date1(end_date)
+
     confirmed_X, confirmed_Y = getXY(confirmed_df, start_date, states + uts)
     recovered_X, recovered_Y = getXY(recovered_df, start_date, states + uts)
     deceased_X, deceased_Y = getXY(deceased_df, start_date, states + uts)
-
     active_X, active_Y = confirmed_X, []
 
     for i in range(len(active_X)):
@@ -440,16 +468,20 @@ def Q2_3(json_file_path, start_date, end_date):
 
     name = "Q2_3"
     plt.title(name)
-    plt.fill_between(active_X, 0, active_Y, color='red', label="Active", alpha=0.5)
-    
+    plt.xlabel("Number of days from - " + str(start_date))
+    plt.ylabel("Number of cases")
+    plt.fill_between(
+        active_X,
+        0,
+        active_Y,
+        color='red',
+        label="Active",
+        alpha=0.5)
     plt.legend(loc=2)
-
-    plt.savefig(name, dpi=100)
+    plt.savefig(name)
     plt.show()
     plt.close(plt.figure())
     plt.clf()
-    # plt.show()
-    # plt.save()
 
 
 def Q3(json_file_path, start_date, end_date):
@@ -482,7 +514,8 @@ def Q3(json_file_path, start_date, end_date):
         sum_sq_X = sum([x * x for x in X])
         sum_sq_Y = sum([y * y for y in Y])
         sum_XY = sum([x * y for x, y in zip(X, Y)])
-        intercept = (sum_Y * sum_sq_X - sum_X * sum_XY) / (n * sum_sq_X - sum_X**2)
+        intercept = (sum_Y * sum_sq_X - sum_X * sum_XY) / \
+            (n * sum_sq_X - sum_X**2)
         slope = (n * sum_XY - sum_X * sum_Y) / (n * sum_sq_X - sum_X**2)
         return intercept, slope
 
@@ -502,14 +535,14 @@ def Q3(json_file_path, start_date, end_date):
         x_vals = np.array(axes.get_xlim())
         y_vals = intercept + slope * x_vals
         plt.plot(x_vals, y_vals, color='red')
-        plt.savefig(name, dpi=100)
-        # plt.show()
+        plt.savefig(name)
+        plt.show()
         plt.close(plt.figure())
         plt.clf()
 
-    # plot(confirmed_X, confirmed_Y, confirmed_slope, confirmed_intercept, "confirmed_Q3")
-    # plot(recovered_X, recovered_Y, recovered_slope, recovered_intercept, "recovered_Q3")
-    # plot(deceased_X, deceased_Y, deceased_slope, deceased_intercept, "deceased_Q3")
+    plot(confirmed_X, confirmed_Y, confirmed_slope, confirmed_intercept, "confirmed_Q3")
+    plot(recovered_X, recovered_Y, recovered_slope, recovered_intercept, "recovered_Q3")
+    plot(deceased_X, deceased_Y, deceased_slope, deceased_intercept, "deceased_Q3")
 
     print('\nQ3 :-\n')
     print(
